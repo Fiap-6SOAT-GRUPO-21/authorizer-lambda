@@ -60,6 +60,6 @@ jobs:
               --zip-file fileb://function.zip \
               --handler index.handler \
               --runtime nodejs16.x \
-              --role arn:aws:iam::417263883456:role/LabRole \
+              --role arn:aws:iam::363485212740:role/LabRole \
               --environment "Variables={USER_POOL_ID=${{ env.USER_POOL_ID }},CLIENT_ID=${{ env.CLIENT_ID }}}"
           fi
