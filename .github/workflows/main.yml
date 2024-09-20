@@ -30,6 +30,12 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
+      - name: Get AWS Account ID
+        id: get-account-id
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "ACCOUNT_ID=${ACCOUNT_ID}" >> $GITHUB_ENV
+
       - name: Get Cognito parameters from SSM Parameter Store
         id: get-parameters
         run: |
@@ -60,6 +66,6 @@ jobs:
               --zip-file fileb://function.zip \
               --handler index.handler \
               --runtime nodejs16.x \
-              --role arn:aws:iam::363485212740:role/LabRole \
+              --role arn:aws:iam::${{ env.ACCOUNT_ID }}:role/LabRole \
               --environment "Variables={USER_POOL_ID=${{ env.USER_POOL_ID }},CLIENT_ID=${{ env.CLIENT_ID }}}"
           fi
