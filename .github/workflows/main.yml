@@ -59,7 +59,7 @@ jobs:
             aws lambda create-function --function-name techchallenge-authorizer-lambda \
               --zip-file fileb://function.zip \
               --handler index.handler \
-              --runtime nodejs14.x \  # Altere para a versão que você está usando
+              --runtime nodejs12.x \
               --role arn:aws:iam::417263883456:role/LabRole \
               --environment "USER_POOL_ID=${{ env.USER_POOL_ID }},CLIENT_ID=${{ env.CLIENT_ID }}"
           fi
