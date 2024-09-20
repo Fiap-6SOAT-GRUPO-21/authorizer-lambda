@@ -35,8 +35,8 @@ jobs:
         run: |
           COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name "/techchallenge/cognito/userpool_id" --with-decryption --query "Parameter.Value" --output text)
           COGNITO_CLIENT_ID=$(aws ssm get-parameter --name "/techchallenge/cognito/client_id" --with-decryption --query "Parameter.Value" --output text)
-          echo "USER_POOL_ID=${COGNITO_USER_POOL_ID}" >> $GITHUB_ENV
-          echo "CLIENT_ID=${COGNITO_CLIENT_ID}" >> $GITHUB_ENV
+          echo "USER_POOL_ID=us-east-1_EXlHzpLBS" >> $GITHUB_ENV
+          echo "CLIENT_ID=6d1oc64ts7urk81mcaltc3ip68" >> $GITHUB_ENV
 
       - name: Package Lambda function
         run: |
