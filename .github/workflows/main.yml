@@ -58,8 +58,8 @@ jobs:
             echo "Creating new Lambda function..."
             aws lambda create-function --function-name techchallenge-authorizer-lambda \
               --zip-file fileb://function.zip \
-              --handler index.handler \  # Nome do arquivo e da função
-              --runtime nodejs12.x \      # Altere para a versão que você está usando
+              --handler index.handler \
+              --runtime nodejs12.x \
               --role arn:aws:iam::417263883456:role/LabRole \
               --environment USER_POOL_ID=${{ env.USER_POOL_ID }} CLIENT_ID=${{ env.CLIENT_ID }}
           fi
