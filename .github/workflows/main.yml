@@ -29,8 +29,28 @@ jobs:
           echo "USER_POOL_ID=${COGNITO_USER_POOL_ID}" >> $GITHUB_ENV
           echo "CLIENT_ID=${COGNITO_CLIENT_ID}" >> $GITHUB_ENV
 
-      - name: Deploy Lambda function
+      - name: Package Lambda function
         run: |
           zip -r function.zip .
-          aws lambda update-function-code --function-name techchallenge-authorizer-lambda --zip-file fileb://function.zip
-          aws lambda update-function-configuration --function-name techchallenge-authorizer-lambda --environment USER_POOL_ID=${{ env.USER_POOL_ID }} CLIENT_ID=${{ env.CLIENT_ID }}
+
+      - name: Check if Lambda function exists
+        id: check-lambda
+        run: |
+          FUNCTION_EXISTS=$(aws lambda get-function --function-name techchallenge-authorizer-lambda --query 'Configuration.FunctionName' --output text 2>/dev/null)
+          echo "FUNCTION_EXISTS=${FUNCTION_EXISTS}" >> $GITHUB_ENV
+
+      - name: Deploy Lambda function
+        run: |
+          if [ "${{ env.FUNCTION_EXISTS }}" = "techchallenge-authorizer-lambda" ]; then
+            echo "Updating existing Lambda function..."
+            aws lambda update-function-code --function-name techchallenge-authorizer-lambda --zip-file fileb://function.zip
+            aws lambda update-function-configuration --function-name techchallenge-authorizer-lambda --environment USER_POOL_ID=${{ env.USER_POOL_ID }} CLIENT_ID=${{ env.CLIENT_ID }}
+          else
+            echo "Creating new Lambda function..."
+            aws lambda create-function --function-name techchallenge-authorizer-lambda \
+              --zip-file fileb://function.zip \
+              --handler your.handler \
+              --runtime python3.8 \  # Altere para o runtime que você está usando
+              --role arn:aws:iam::YOUR_ACCOUNT_ID:role/YOUR_ROLE_NAME \
+              --environment USER_POOL_ID=${{ env.USER_POOL_ID }} CLIENT_ID=${{ env.CLIENT_ID }}
+          fi
