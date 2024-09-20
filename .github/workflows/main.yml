@@ -36,7 +36,7 @@ jobs:
       - name: Check if Lambda function exists
         id: check-lambda
         run: |
-          FUNCTION_EXISTS=$(aws lambda get-function --function-name techchallenge-authorizer-lambda --query 'Configuration.FunctionName' --output text 2>/dev/null)
+          FUNCTION_EXISTS=$(aws lambda get-function --function-name techchallenge-authorizer-lambda --query 'Configuration.FunctionName' --output text 2>/dev/null || true)
           echo "FUNCTION_EXISTS=${FUNCTION_EXISTS}" >> $GITHUB_ENV
 
       - name: Deploy Lambda function
