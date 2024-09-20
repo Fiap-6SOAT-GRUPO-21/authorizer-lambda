@@ -53,13 +53,13 @@ jobs:
           if [ "${{ env.FUNCTION_EXISTS }}" = "techchallenge-authorizer-lambda" ]; then
             echo "Updating existing Lambda function..."
             aws lambda update-function-code --function-name techchallenge-authorizer-lambda --zip-file fileb://function.zip
-            aws lambda update-function-configuration --function-name techchallenge-authorizer-lambda --environment USER_POOL_ID=${{ env.USER_POOL_ID }} CLIENT_ID=${{ env.CLIENT_ID }}
+            aws lambda update-function-configuration --function-name techchallenge-authorizer-lambda --environment "USER_POOL_ID=${{ env.USER_POOL_ID }},CLIENT_ID=${{ env.CLIENT_ID }}"
           else
             echo "Creating new Lambda function..."
             aws lambda create-function --function-name techchallenge-authorizer-lambda \
               --zip-file fileb://function.zip \
               --handler index.handler \
-              --runtime nodejs12.x \
+              --runtime nodejs14.x \  # Altere para a versão que você está usando
               --role arn:aws:iam::417263883456:role/LabRole \
-              --environment USER_POOL_ID=${{ env.USER_POOL_ID }} CLIENT_ID=${{ env.CLIENT_ID }}
+              --environment "USER_POOL_ID=${{ env.USER_POOL_ID }},CLIENT_ID=${{ env.CLIENT_ID }}"
           fi
