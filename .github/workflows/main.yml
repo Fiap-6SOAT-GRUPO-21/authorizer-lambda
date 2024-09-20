@@ -1,0 +1,35 @@
+name: Deploy Lambda
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Get Cognito parameters from SSM Parameter Store
+        id: get-parameters
+        run: |
+          COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name "/techchallenge/cognito/userpool_id" --with-decryption --query "Parameter.Value" --output text)
+          COGNITO_CLIENT_ID=$(aws ssm get-parameter --name "/techchallenge/cognito/client_id" --with-decryption --query "Parameter.Value" --output text)
+          echo "USER_POOL_ID=${COGNITO_USER_POOL_ID}" >> $GITHUB_ENV
+          echo "CLIENT_ID=${COGNITO_CLIENT_ID}" >> $GITHUB_ENV
+
+      - name: Deploy Lambda function
+        run: |
+          zip -r function.zip .
+          aws lambda update-function-code --function-name techchallenge-authorizer-lambda --zip-file fileb://function.zip
+          aws lambda update-function-configuration --function-name techchallenge-authorizer-lambda --environment USER_POOL_ID=${{ env.USER_POOL_ID }} CLIENT_ID=${{ env.CLIENT_ID }}
