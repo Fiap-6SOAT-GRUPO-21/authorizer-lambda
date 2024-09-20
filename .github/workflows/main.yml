@@ -16,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: '16'
 
       - name: Install dependencies
         run: |
@@ -30,32 +30,36 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
+      - name: Get Cognito parameters from SSM Parameter Store
+        id: get-parameters
+        run: |
+          COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name "/techchallenge/cognito/userpool_id" --with-decryption --query "Parameter.Value" --output text)
+          COGNITO_CLIENT_ID=$(aws ssm get-parameter --name "/techchallenge/cognito/client_id" --with-decryption --query "Parameter.Value" --output text)
+          echo "USER_POOL_ID=${COGNITO_USER_POOL_ID}" >> $GITHUB_ENV
+          echo "CLIENT_ID=${COGNITO_CLIENT_ID}" >> $GITHUB_ENV
+
       - name: Package Lambda function
         run: |
-          zip -r function.zip index.js node_modules/ # Inclui index.js e node_modules
+          zip -r function.zip index.js node_modules/
 
       - name: Check if Lambda function exists
         id: check-lambda
         run: |
-          FUNCTION_EXISTS=$(aws lambda get-function --function-name techchallenge-authorizer-lambda --query 'Configuration.FunctionName' --output text 2>/dev/null || echo "")
+          FUNCTION_EXISTS=$(aws lambda get-function --function-name techchallenge-authorizer-lambda --query 'Configuration.FunctionName' --output text 2>/dev/null || true)
           echo "FUNCTION_EXISTS=${FUNCTION_EXISTS}" >> $GITHUB_ENV
-
-      - name: Debug FUNCTION_EXISTS
-        run: |
-          echo "Function Exists: $FUNCTION_EXISTS"
 
       - name: Deploy Lambda function
         run: |
           if [ "${{ env.FUNCTION_EXISTS }}" = "techchallenge-authorizer-lambda" ]; then
             echo "Updating existing Lambda function..."
             aws lambda update-function-code --function-name techchallenge-authorizer-lambda --zip-file fileb://function.zip
-            aws lambda update-function-configuration --function-name techchallenge-authorizer-lambda --environment "USER_POOL_ID=us-east-1_EXlHzpLBS,CLIENT_ID=6d1oc64ts7urk81mcaltc3ip68"
+            aws lambda update-function-configuration --function-name techchallenge-authorizer-lambda --environment "Variables={USER_POOL_ID=${{ env.USER_POOL_ID }},CLIENT_ID=${{ env.CLIENT_ID }}}"
           else
             echo "Creating new Lambda function..."
             aws lambda create-function --function-name techchallenge-authorizer-lambda \
               --zip-file fileb://function.zip \
               --handler index.handler \
-              --runtime nodejs12.x \
+              --runtime nodejs16.x \
               --role arn:aws:iam::417263883456:role/LabRole \
-              --environment "USER_POOL_ID=us-east-1_EXlHzpLBS,CLIENT_ID=6d1oc64ts7urk81mcaltc3ip68"
+              --environment "Variables={USER_POOL_ID=${{ env.USER_POOL_ID }},CLIENT_ID=${{ env.CLIENT_ID }}}"
           fi
