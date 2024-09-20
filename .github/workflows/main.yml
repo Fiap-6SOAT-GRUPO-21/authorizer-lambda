@@ -13,6 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+
+      - name: Install dependencies
+        run: |
+          npm install
+
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -31,7 +40,7 @@ jobs:
 
       - name: Package Lambda function
         run: |
-          zip -r function.zip .
+          zip -r function.zip index.js node_modules/
 
       - name: Check if Lambda function exists
         id: check-lambda
@@ -49,8 +58,8 @@ jobs:
             echo "Creating new Lambda function..."
             aws lambda create-function --function-name techchallenge-authorizer-lambda \
               --zip-file fileb://function.zip \
-              --handler your.handler \
-              --runtime python3.8 \  # Altere para o runtime que você está usando
-              --role arn:aws:iam::YOUR_ACCOUNT_ID:role/YOUR_ROLE_NAME \
+              --handler index.handler \  # Nome do arquivo e da função
+              --runtime nodejs12.x \      # Altere para a versão que você está usando
+              --role arn:aws:iam::417263883456:role/LabRole \
               --environment USER_POOL_ID=${{ env.USER_POOL_ID }} CLIENT_ID=${{ env.CLIENT_ID }}
           fi
