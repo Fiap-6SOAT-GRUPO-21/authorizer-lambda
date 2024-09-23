@@ -1,4 +1,4 @@
-import {CognitoJwtVerifier} from "aws-jwt-verify";
+const { CognitoJwtVerifier } = require("aws-jwt-verify");
 
 const verifier = CognitoJwtVerifier.create({
     userPoolId: process.env.USER_POOL_ID,
@@ -6,16 +6,19 @@ const verifier = CognitoJwtVerifier.create({
     clientId: process.env.CLIENT_ID,
 });
 
-export const handler = async (event) => {
+exports.handler = async (event) => {
     if (!event.headers.authorization) {
         console.log('Returning not authorized');
         return {
             isAuthorized: false,
         };
     }
+
+    const token = event.headers.authorization.split(' ')[1];
+
     try {
-        console.log('Verifying in cognito');
-        await verifier.verify(event.headers.authorization);
+        console.log('Verifying in cognito with token:', token); // somente para debug no cloudwatch
+        await verifier.verify(token);
         console.log('Returning authorized');
         return {
             isAuthorized: true
