@@ -15,5 +15,3 @@ Funciona da seguinte maneira:
 
 (5) Caso o token seja válido, o API GW chama o endpoint do backbone que está rodando em um container ECS.
 
-
-#
